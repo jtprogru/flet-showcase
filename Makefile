@@ -85,14 +85,18 @@ typecheck: ## Проверить типы (mypy)
 
 .PHONY: test
 test: ## Прогнать тесты
-	$(RUN) --with pytest pytest -q
+	$(RUN) --group test pytest
 
 .PHONY: test-cov
-test-cov: ## Тесты с покрытием
-	$(RUN) --with pytest --with pytest-cov pytest --cov=. --cov-report=term-missing
+test-cov: ## Тесты с покрытием (порог 80%)
+	$(RUN) --group test pytest --cov --cov-report=term-missing
+
+.PHONY: test-html
+test-html: ## Отчёт о покрытии в htmlcov/index.html
+	$(RUN) --group test pytest --cov --cov-report=html
 
 .PHONY: check
-check: lint smoke ## Полная проверка перед коммитом
+check: lint test smoke ## Полная проверка перед коммитом
 
 ## --- Сборка ------------------------------------------------------------
 
