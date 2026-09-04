@@ -365,9 +365,9 @@ class GraphicsPage(ft.Column):
             label="Тип перехода",
             value="scale",
             options=[
-                ft.DropdownOption(text="scale"),
-                ft.DropdownOption(text="fade"),
-                ft.DropdownOption(text="rotation"),
+                ft.DropdownOption(key="scale", text="scale"),
+                ft.DropdownOption(key="fade", text="fade"),
+                ft.DropdownOption(key="rotation", text="rotation"),
             ],
             on_select=self._change_transition,
         )

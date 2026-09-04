@@ -242,7 +242,7 @@ class InputsPage(ft.Column):
                     enable_filter=True,
                     editable=True,
                     leading_icon=ft.Icons.LOCATION_CITY,
-                    options=[ft.DropdownOption(text=city) for city in CITIES],
+                    options=[ft.DropdownOption(key=city, text=city) for city in CITIES],
                     on_select=self._report("Dropdown"),
                 ),
                 ft.SegmentedButton(
