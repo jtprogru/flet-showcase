@@ -12,6 +12,28 @@ make run       # нативное окно (GUI)
 make run-web   # то же самое в браузере
 ```
 
+## Что нужно установить
+
+Чтобы запустить приложение из исходников, хватает четырёх системных инструментов:
+
+| Инструмент | Версия | Зачем |
+|------------|--------|-------|
+| Python | 3.10+ (разработка идёт на 3.14, зафиксирован в `.python-version`) | сам код |
+| [uv](https://docs.astral.sh/uv/) | 0.12+ | окружение и зависимости, ставит нужный Python сам |
+| GNU Make | любая | точки входа проекта (`make run`, `make test`, …) |
+| git | любая | получить репозиторий |
+
+Всё остальное — Python-пакеты, они приезжают по `make install` (`uv sync --all-groups`) с точными версиями из `pyproject.toml` и `uv.lock`:
+
+| Группа | Пакеты |
+|--------|--------|
+| runtime | `flet==0.86.5`, `flet-charts==0.86.5` |
+| dev | `flet-cli==0.86.5`, `flet-desktop==0.86.5`, `flet-web==0.86.5` |
+| test | `pytest==9.1.1`, `pytest-cov==7.1.0` |
+| lint | `ruff==0.16.6`, `mypy==2.3.1` |
+
+`flet-desktop` тянет с собой готовый Flutter-клиент — отдельно ставить Flutter для `make run` не нужно. Он понадобится только для сборки GUI, см. ниже.
+
 ## Что внутри
 
 | Раздел | Что показывает | Ключевые контролы |
@@ -68,36 +90,65 @@ make build-web      # статическая web-версия
 make build-matrix   # какие платформы доступны с текущей машины
 ```
 
-Первая сборка скачивает Flutter SDK в `~/flutter` (около 3.8 ГБ) — это происходит один раз, дальше сборки быстрые.
+Первая сборка скачивает Flutter SDK в `~/flutter` (около 3.8 ГБ) — это происходит один раз, дальше сборки быстрые. Заложи ещё несколько гигабайт под артефакты в `build/`.
 
 Обе сборки проверены на macOS 26.6 (Apple Silicon):
 
 - `make build-web` → `build/web`: самодостаточное приложение на Pyodide, работает без Python-сервера (достаточно `python3 -m http.server` из этой папки);
 - `make build-macos` → `build/macos/flet-showcase.app`: нативное приложение (~306 МБ), запускается двойным кликом.
 
-Для сборки под macOS нужны полный Xcode (не только Command Line Tools) и CocoaPods:
+### Системные зависимости для сборки
+
+Каждая платформа собирается только на себе: `.app` — на macOS, `.exe` — на Windows, бинарник Linux — на Linux. Web собирается везде и ничего дополнительного не требует.
+
+**macOS** (проверено на этой машине):
 
 ```bash
-# Xcode ставится из App Store, затем
+sudo softwareupdate --install-rosetta --agree-to-license  # Apple Silicon
+# Xcode 15+ ставится из App Store, затем
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -runFirstLaunch
-brew install cocoapods
+brew install cocoapods                                    # 1.16+
 ```
 
-Без CocoaPods сборка падает с `CocoaPods not installed or not in valid state` — флаг `--swift-package-manager` эту зависимость не снимает, потому что шаблон Flet всё ещё содержит `Podfile`.
+Нужен именно полный Xcode, а не Command Line Tools. Без CocoaPods сборка падает с `CocoaPods not installed or not in valid state` — флаг `--swift-package-manager` эту зависимость не снимает, потому что шаблон Flet всё ещё содержит `Podfile`.
+
+**Linux** (Debian/Ubuntu) — GTK, GStreamer и toolchain для компиляции нативных плагинов:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  binutils clang cmake gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
+  gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly \
+  gstreamer1.0-pulseaudio gstreamer1.0-qt5 gstreamer1.0-tools \
+  gstreamer1.0-x libasound2-dev libgstreamer-plugins-bad1.0-dev \
+  libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev libgtk-3-dev \
+  libmpv-dev libsecret-1-0 libsecret-1-dev libunwind-dev lld llvm mpv \
+  ninja-build pkg-config
+```
+
+Актуальный список всегда знает сам Flet, так что скрипт установки можно не поддерживать руками:
+
+```bash
+sudo apt install -y $(uv run flet --version --json | jq -r '.linux_dependencies | join(" ")')
+```
+
+**Windows** — Visual Studio 2022 или 2026 с рабочей нагрузкой «Desktop development with C++». Ещё нужен режим разработчика (`start ms-settings:developers`), иначе сборка с плагинами упадёт на symlink'ах.
 
 ## Разработка
 
 ```bash
-make fmt       # ruff format + автофиксы
-make lint      # проверка без изменений
-make test      # pytest
-make test-cov  # pytest с покрытием, порог 80%
-make smoke     # собрать все разделы без запуска GUI
-make check     # lint + test + smoke
+make fmt        # ruff format + автофиксы
+make lint       # проверка без изменений
+make typecheck  # mypy по main.py, app и tests
+make test       # pytest
+make test-cov   # pytest с покрытием, порог 80%
+make smoke      # собрать все разделы без запуска GUI
+make check      # lint + test + smoke
 ```
 
-Зависимости: `flet` и `flet-charts`, dev-группа — `flet-cli`, `flet-desktop`, `flet-web`, группа `test` — `pytest` и `pytest-cov`. Всё ставится через `uv sync --all-groups`.
+Версии всех зависимостей закреплены точно (`==`) в `pyproject.toml`, разрешённое дерево лежит в `uv.lock`, версия интерпретатора — в `.python-version`. Обновление версии делается осознанно: правишь `pyproject.toml`, прогоняешь `make install` и `make check`.
 
 ## Тесты
 
@@ -106,3 +157,7 @@ make check     # lint + test + smoke
 Настоящую `Page` создать без работающего фронтенда нельзя, поэтому `tests/conftest.py` подменяет свойство `page` и метод `update()` заглушками. За счёт этого обработчики событий выполняются целиком, как в приложении: тесты кликают по кнопкам, свайпают карточки, сортируют таблицы и открывают диалоги, а `FakePage` запоминает показанные `SnackBar`, `AlertDialog` и `BottomSheet`.
 
 Отдельно проверяются события графиков (`LineChartEvent`, `BarChartEvent`, `PieChartEvent` и остальные создаются настоящими классами `flet-charts`) — именно такие ошибки не ловятся ни линтером, ни сборкой страниц.
+
+## Лицензия
+
+[PolyForm Noncommercial 1.0.0](LICENSE) — тестовое демонстрационное приложение, подготовленное как учебный проект для МТИ. Разрешено любое некоммерческое использование: обучение, исследования, личное изучение, работа образовательных учреждений. Коммерческое использование лицензией не покрывается.
