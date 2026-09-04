@@ -14,6 +14,7 @@ from app.pages import (
     gallery,
     graphics,
     inputs,
+    people,
     services,
     theming,
     todo,
@@ -28,6 +29,12 @@ SECTIONS = [
         ft.Icons.SPACE_DASHBOARD,
         "Дашборд",
         lambda ctx: dashboard.build(),
+    ),
+    (
+        ft.Icons.CONTACTS_OUTLINED,
+        ft.Icons.CONTACTS,
+        "Картотека",
+        lambda ctx: people.build(),
     ),
     (
         ft.Icons.CHECKLIST_OUTLINED,
