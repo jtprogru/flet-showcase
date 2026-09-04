@@ -81,7 +81,7 @@ lint: ## Проверить код без изменений
 
 .PHONY: typecheck
 typecheck: ## Проверить типы (mypy)
-	$(RUN) --with mypy mypy $(SRC)
+	$(RUN) --with mypy mypy $(SRC) app tests
 
 .PHONY: test
 test: ## Прогнать тесты
