@@ -285,7 +285,7 @@ class InputsPage(ft.Column):
             view_hint_text="Начни вводить название",
             bar_leading=ft.Icon(ft.Icons.SEARCH),
             on_change=self._search_changed,
-            on_tap=lambda e: self.search_bar.open_view(),
+            on_tap=self._search_open,
             controls=[
                 ft.ListTile(title=ft.Text(city), on_click=self._search_pick, data=city)
                 for city in CITIES
@@ -314,9 +314,12 @@ class InputsPage(ft.Column):
             tile.visible = query in tile.data.lower()
         self.search_bar.update()
 
-    def _search_pick(self, e):
+    async def _search_open(self, e):
+        await self.search_bar.open_view()
+
+    async def _search_pick(self, e):
         self.search_bar.value = e.control.data
-        self.search_bar.close_view(e.control.data)
+        await self.search_bar.close_view(e.control.data)
         self.state.value = f"SearchBar → {e.control.data}"
         self.state.update()
 
