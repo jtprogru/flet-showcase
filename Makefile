@@ -6,7 +6,7 @@ SHELL := /usr/bin/env bash
 
 UV ?= uv
 RUN := $(UV) run
-PYTHON_VERSION ?= 3.12
+PYTHON_VERSION ?= 3.14
 SRC ?= main.py
 
 .PHONY: help
@@ -63,8 +63,8 @@ shell: ## Python REPL в окружении проекта
 
 .PHONY: fmt
 fmt: ## Отформатировать код (ruff format + fix)
-	$(UV) tool run ruff format .
-	$(UV) tool run ruff check --fix .
+	$(RUN) --group lint ruff format .
+	$(RUN) --group lint ruff check --fix .
 
 .PHONY: smoke
 smoke: ## Собрать все страницы без запуска GUI (быстрая проверка)
@@ -76,12 +76,12 @@ smoke: ## Собрать все страницы без запуска GUI (бы
 
 .PHONY: lint
 lint: ## Проверить код без изменений
-	$(UV) tool run ruff format --check .
-	$(UV) tool run ruff check .
+	$(RUN) --group lint ruff format --check .
+	$(RUN) --group lint ruff check .
 
 .PHONY: typecheck
 typecheck: ## Проверить типы (mypy)
-	$(RUN) --with mypy mypy $(SRC) app tests
+	$(RUN) --group lint mypy $(SRC) app tests
 
 .PHONY: test
 test: ## Прогнать тесты
