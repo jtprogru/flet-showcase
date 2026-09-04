@@ -53,6 +53,7 @@ app/theme.py         контроллер темы (режим, seed-цвет, �
 app/ui.py            общие блоки: заголовки страниц, секции, плитки метрик
 app/pages/*.py       по одному модулю на раздел
 app/people/          картотека: модель, хранилище, формы и представления
+tests/               pytest: логика, обработчики событий и сборка разделов
 ```
 
 Раздел добавляется одной строкой в `SECTIONS` внутри `app/shell.py` — фабрика возвращает любой контрол.
@@ -88,10 +89,20 @@ brew install cocoapods
 ## Разработка
 
 ```bash
-make fmt     # ruff format + автофиксы
-make lint    # проверка без изменений
-make smoke   # собрать все разделы без запуска GUI
-make check   # lint + smoke
+make fmt       # ruff format + автофиксы
+make lint      # проверка без изменений
+make test      # pytest
+make test-cov  # pytest с покрытием, порог 80%
+make smoke     # собрать все разделы без запуска GUI
+make check     # lint + test + smoke
 ```
 
-Зависимости: `flet` и `flet-charts`, dev-группа — `flet-cli`, `flet-desktop`, `flet-web`. Всё ставится через `uv sync --all-groups`.
+Зависимости: `flet` и `flet-charts`, dev-группа — `flet-cli`, `flet-desktop`, `flet-web`, группа `test` — `pytest` и `pytest-cov`. Всё ставится через `uv sync --all-groups`.
+
+## Тесты
+
+`make test` прогоняет 305 тестов, `make test-cov` считает покрытие (сейчас 100% строк и ветвей при пороге 80%).
+
+Настоящую `Page` создать без работающего фронтенда нельзя, поэтому `tests/conftest.py` подменяет свойство `page` и метод `update()` заглушками. За счёт этого обработчики событий выполняются целиком, как в приложении: тесты кликают по кнопкам, свайпают карточки, сортируют таблицы и открывают диалоги, а `FakePage` запоминает показанные `SnackBar`, `AlertDialog` и `BottomSheet`.
+
+Отдельно проверяются события графиков (`LineChartEvent`, `BarChartEvent`, `PieChartEvent` и остальные создаются настоящими классами `flet-charts`) — именно такие ошибки не ловятся ни линтером, ни сборкой страниц.
