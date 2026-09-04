@@ -108,7 +108,10 @@ class ChartsPage(ft.Column):
             min_y=0,
             max_y=90,
             on_event=lambda e: self._report(
-                f"LineChart: точка {e.spots[0].point_index if e.spots else '—'}"
+                f"LineChart: серия {e.spots[0].bar_index}, "
+                f"точка {e.spots[0].spot_index}"
+                if e.spots
+                else "LineChart: вне точек"
             ),
         )
         return section(
