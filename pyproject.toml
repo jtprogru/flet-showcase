@@ -1,0 +1,30 @@
+[project]
+name = "flet-showcase"
+version = "2.0.0"
+description = "Витрина компонентов Flet: 12 разделов интерактивных контролов, графиков и анимаций"
+requires-python = ">=3.10"
+keywords = ["flet", "gui", "showcase", "material", "cupertino", "charts"]
+dependencies = [
+    "flet",
+    "flet-charts>=0.86.5",
+]
+
+[dependency-groups]
+dev = ["flet-cli", "flet-desktop", "flet-web"]
+
+[tool.flet]
+org = "dev.jtprogru"
+company = "jtprogru"
+product = "Витрина Flet"
+copyright = "Copyright (C) 2026"
+
+[tool.flet.app]
+path = "."
+module = "main"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
