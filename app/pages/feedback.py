@@ -64,10 +64,10 @@ class FeedbackPage(ft.Column):
                     spacing=8,
                     run_spacing=8,
                     controls=[
-                        ft.ElevatedButton(
-                            content="Elevated",
+                        ft.Button(
+                            content="Button",
                             icon=ft.Icons.ARROW_UPWARD,
-                            on_click=click("ElevatedButton"),
+                            on_click=click("Button"),
                         ),
                         ft.FilledButton(
                             content="Filled",
@@ -112,7 +112,7 @@ class FeedbackPage(ft.Column):
                 ),
             ],
             tags=[
-                "ElevatedButton",
+                "Button",
                 "FilledButton",
                 "OutlinedButton",
                 "TextButton",
