@@ -92,8 +92,11 @@ test-cov: ## Тесты с покрытием (порог 80%)
 	$(RUN) --group test pytest --cov --cov-report=term-missing
 
 .PHONY: test-html
-test-html: ## Отчёт о покрытии в htmlcov/index.html
+test-html: ## Отчёт о покрытии в htmlcov/index.html (откроется в браузере)
 	$(RUN) --group test pytest --cov --cov-report=html
+	@if command -v open >/dev/null; then open htmlcov/index.html; \
+	elif command -v xdg-open >/dev/null; then xdg-open htmlcov/index.html; \
+	else echo "Отчёт: htmlcov/index.html"; fi
 
 .PHONY: check
 check: lint test smoke ## Полная проверка перед коммитом
