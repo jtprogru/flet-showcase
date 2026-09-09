@@ -50,3 +50,8 @@ show_missing = true
 skip_covered = true
 fail_under = 80
 exclude_also = ["if __name__ == .__main__.:"]
+
+# В терминале skip_covered экономит место, но в HTML он прячет вообще всё,
+# пока покрытие 100% — там нужен полный список файлов.
+[tool.coverage.html]
+skip_covered = false
