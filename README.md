@@ -158,8 +158,8 @@ sudo apt install -y $(uv run flet --version --json | jq -r '.linux_dependencies 
 | `flet-showcase-linux-x64.tar.gz` | Linux x86-64 | `ubuntu-22.04` |
 | `flet-showcase-linux-arm64.tar.gz` | Linux ARM64 | `ubuntu-22.04-arm` |
 | `flet-showcase-windows-x64.zip` | Windows x64 и Windows 11 на ARM через эмуляцию | `windows-2025` |
-| `flet-showcase-macos-arm64.zip` | Mac на Apple Silicon | `macos-15` |
-| `flet-showcase-macos-x64.zip` | Mac на Intel | `macos-15-intel` |
+| `flet-showcase-macos-arm64.zip` | Mac на Apple Silicon | `macos-26` |
+| `flet-showcase-macos-x64.zip` | Mac на Intel | `macos-26-intel` |
 
 Рядом лежит `SHA256SUMS.txt` с контрольными суммами. Linux собирается на Ubuntu 22.04, поэтому бинарник работает на системах с glibc 2.35 и новее: Ubuntu 22.04+, Debian 12+. Отдельной сборки под Windows ARM64 нет: flet 0.86.5 забирает результат Flutter только из x64-каталога.
 
