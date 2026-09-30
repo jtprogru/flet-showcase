@@ -7,6 +7,11 @@
 # Windows ARM64 отдельно не собирается: flet 0.86.5 умеет забирать результат
 # только из x64-каталога Flutter, а Windows 11 на ARM запускает x64-сборку
 # через эмуляцию. Linux собирается на 22.04, чтобы бинарник работал на glibc 2.35+.
+#
+# macOS собирается на образах 26: плагинам Flutter (connectivity_plus) нужен
+# SDK macOS 26, а на macos-15 по умолчанию Xcode 16. --arch на macOS влияет
+# только на Python-пакеты, и serious_python понимает arm64 и x86_64, но не x64
+# из подсказки flet build. Сам .app Xcode всё равно собирает универсальным.
 
 name: Release
 
@@ -118,8 +123,8 @@ jobs:
               "linux-x64": target("ubuntu-22.04", "linux", "tar.gz"),
               "linux-arm64": target("ubuntu-22.04-arm", "linux", "tar.gz"),
               "windows-x64": target("windows-2025", "windows", "zip"),
-              "macos-arm64": target("macos-15", "macos", "zip", "--arch arm64"),
-              "macos-x64": target("macos-15-intel", "macos", "zip", "--arch x64"),
+              "macos-arm64": target("macos-26", "macos", "zip", "--arch arm64"),
+              "macos-x64": target("macos-26-intel", "macos", "zip", "--arch x86_64"),
           }
 
           with open("pyproject.toml", "rb") as f:
