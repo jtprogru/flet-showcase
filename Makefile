@@ -120,9 +120,11 @@ build-windows: ## Собрать приложение для Windows
 build-web: ## Собрать статическую web-версию
 	$(RUN) flet build web --yes
 
+# flet требует целевую платформу даже для матрицы (берём web — собирается везде)
+# и после вывода таблицы всегда выходит с кодом 1, поэтому его не считаем ошибкой.
 .PHONY: build-matrix
 build-matrix: ## Показать, что и на чём можно собрать
-	$(RUN) flet build --show-platform-matrix
+	$(RUN) flet build web --show-platform-matrix --skip-flutter-doctor || [ $$? -eq 1 ]
 
 ## --- Обслуживание ------------------------------------------------------
 
