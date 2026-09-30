@@ -76,6 +76,8 @@ app/ui.py            общие блоки: заголовки страниц, �
 app/pages/*.py       по одному модулю на раздел
 app/people/          картотека: модель, хранилище, формы и представления
 tests/               pytest: логика, обработчики событий и сборка разделов
+scripts/             установка готовой сборки из релиза
+.github/workflows/   сборка под все платформы и публикация релиза
 ```
 
 Раздел добавляется одной строкой в `SECTIONS` внутри `app/shell.py` — фабрика возвращает любой контрол.
@@ -146,6 +148,60 @@ sudo apt install -y $(uv run flet --version --json | jq -r '.linux_dependencies 
 ```
 
 **Windows** — Visual Studio 2022 или 2026 с рабочей нагрузкой «Desktop development with C++». Ещё нужен режим разработчика (`start ms-settings:developers`), иначе сборка с плагинами упадёт на symlink'ах.
+
+## Релизы и загрузка
+
+Готовые сборки собирает workflow `Release` в GitHub Actions, каждую платформу на своём раннере:
+
+| Файл в релизе | Для чего | Раннер |
+|---------------|----------|--------|
+| `flet-showcase-linux-x64.tar.gz` | Linux x86-64 | `ubuntu-22.04` |
+| `flet-showcase-linux-arm64.tar.gz` | Linux ARM64 | `ubuntu-22.04-arm` |
+| `flet-showcase-windows-x64.zip` | Windows x64 и Windows 11 на ARM через эмуляцию | `windows-2025` |
+| `flet-showcase-macos-arm64.zip` | Mac на Apple Silicon | `macos-15` |
+| `flet-showcase-macos-x64.zip` | Mac на Intel | `macos-15-intel` |
+
+Рядом лежит `SHA256SUMS.txt` с контрольными суммами. Linux собирается на Ubuntu 22.04, поэтому бинарник работает на системах с glibc 2.35 и новее: Ubuntu 22.04+, Debian 12+. Отдельной сборки под Windows ARM64 нет: flet 0.86.5 забирает результат Flutter только из x64-каталога.
+
+Выпустить релиз — значит поставить тег. Версия в теге должна совпадать с `version` в `pyproject.toml`, иначе workflow остановится на первом шаге:
+
+```bash
+git tag v2.1.0
+git push origin v2.1.0
+```
+
+Тег запускает проверки (`make check`), сборку всех пяти платформ и публикацию. Если релиз для тега уже создан, например с changelog, файлы просто добавятся к нему.
+
+Вручную workflow запускается из вкладки Actions или через `gh`. Без `tag` получится пробная сборка текущей ветки: архивы лежат в artifacts прогона 14 дней. С `tag` и `publish=true` выбранные платформы собираются из тега и заменяют свои файлы в релизе, так что упавшую платформу можно пересобрать отдельно:
+
+```bash
+gh workflow run release.yml                                   # пробная сборка всех платформ
+gh workflow run release.yml -f targets=linux-arm64,macos-x64  # только выбранные
+gh workflow run release.yml -f tag=v2.1.0 -f targets=windows-x64 -f publish=true
+```
+
+Установить последнюю версию под текущую систему можно одной командой. Скрипт сам выберет нужный файл, сверит контрольную сумму и распакует приложение: на macOS в `~/Applications`, на Linux в `~/.local/opt/flet-showcase` с командой `~/.local/bin/flet-showcase`, на Windows в `%LOCALAPPDATA%\Programs\flet-showcase`.
+
+```bash
+# macOS и Linux
+curl -fsSL https://raw.githubusercontent.com/jtprogru/flet-showcase/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/jtprogru/flet-showcase/main/scripts/install.sh | sh -s -- v2.1.0
+```
+
+```powershell
+# Windows
+irm https://raw.githubusercontent.com/jtprogru/flet-showcase/main/scripts/install.ps1 | iex
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/jtprogru/flet-showcase/main/scripts/install.ps1))) -Version v2.1.0
+```
+
+Вручную нужный файл берётся со страницы релиза, по постоянной ссылке на последнюю версию или через `gh`:
+
+```bash
+curl -LO https://github.com/jtprogru/flet-showcase/releases/latest/download/flet-showcase-linux-arm64.tar.gz
+gh release download v2.1.0 -R jtprogru/flet-showcase -p 'flet-showcase-macos-arm64.zip'
+```
+
+Сборки не подписаны. На macOS приложение, скачанное браузером, Gatekeeper откроет только после подтверждения в «Системные настройки → Конфиденциальность и безопасность», либо после снятия карантина: `xattr -dr com.apple.quarantine flet-showcase.app`. На Windows так же предупредит SmartScreen. Скрипт установки на macOS качает через `curl`, поэтому карантинной метки у приложения нет.
 
 ## Масштаб на 4K-мониторах
 
