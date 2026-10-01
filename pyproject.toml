@@ -25,6 +25,13 @@ copyright = "Copyright (C) 2026"
 path = "."
 module = "main"
 
+# Шаблон flet 0.86.5 закрепляет jni 1.0.0, а jni_flutter 1.0.4 (вышел 2026-10-01)
+# сгенерирован под jni ^1.1.0, хотя в pubspec по-прежнему просит ^1.0.0. Pub
+# выбирает 1.0.4, и сборка падает на JniVersionCheck. Держим последнюю
+# совместимую версию, пока flet не обновит шаблон.
+[tool.flet.flutter.pubspec.dependency_overrides]
+jni_flutter = "1.0.3"
+
 [tool.ruff]
 line-length = 88
 target-version = "py310"
